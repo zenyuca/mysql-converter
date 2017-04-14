@@ -180,22 +180,23 @@ ${valueContent}
 ${whereConditionConent}
   </sql>
 
-  <select id="findAll" resultMap="resMap_LadderInfo_ALl" parameterType="com.electric.wen.beans.${beanName}">
+  <select id="findAll" resultMap="resMap_${prefix}" parameterType="com.electric.wen.beans.${beanName}">
     SELECT
       <include refid="All_Column_List"></include>
     FROM ${tableName}
   </select>
   
-  <select id="listPage" resultMap="resMap_Ladder" parameterType="com.electric.wen.beans.${beanName}">
+  <select id="listPage" resultMap="resMap_${prefix}" parameterType="com.electric.wen.beans.${beanName}">
     SELECT
       <include refid="All_Column_List"></include>
     FROM ${tableName}
     <where>
       <include refid="whereCondition"></include>
     </where>
+    ORDER BY ${pkName} DESC
   </select>
   
-  <select id="loadByPK" resultMap="resMap_Ladder" parameterType="java.lang.Integer">
+  <select id="loadByPK" resultMap="resMap_${prefix}" parameterType="java.lang.Integer">
     SELECT
       <include refid="All_Column_List"></include>
     FROM ${tableName}
