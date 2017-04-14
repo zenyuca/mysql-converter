@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.electric.wen.mapper.ApplyMapper">
+  <resultMap id="resMap_Apply" type="com.electric.wen.beans.ApplyBean">
+        <id column="applyId" property="applyId" />
+        <result column="listCheckerId" property="listCheckerId" />
+        <result column="listRecorderId" property="listRecorderId" />
+        <result column="recordStatus" property="recordStatus" />
+        <result column="createTime" property="createTime" />
+        <result column="userNumber" property="userNumber" />
+        <result column="electricType" property="electricType" />
+        <result column="userName" property="userName" />
+        <result column="userAddress" property="userAddress" />
+        <result column="phone" property="phone" />
+        <result column="applyAgreementCapacity" property="applyAgreementCapacity" />
+        <result column="applyRunCapacity" property="applyRunCapacity" />
+        <result column="voltage" property="voltage" />
+        <result column="applyReason" property="applyReason" />
+        <result column="applyRemark" property="applyRemark" />
+        <result column="applyStatus" property="applyStatus" />
+        <result column="useElectricType" property="useElectricType" />
+        <result column="stationId" property="stationId" />
+        <result column="lineId" property="lineId" />
+        <result column="zoneId" property="zoneId" />
+        <result column="transformerId" property="transformerId" />
+        <result column="calcPointerName" property="calcPointerName" />
+        <result column="calcMode" property="calcMode" />
+        <result column="calcRelation" property="calcRelation" />
+        <result column="checkRemark" property="checkRemark" />
+        <result column="eleNumRecorderId" property="eleNumRecorderId" />
+        <result column="billing" property="billing" />
+  </resultMap>
+
+  <sql id="All_Column_List" >
+        applyId,
+        <include refid="Insert_Column_List"></include>
+  </sql>
+  
+  <sql id="Insert_Column_List" >
+        listCheckerId,
+        listRecorderId,
+        recordStatus,
+        createTime,
+        userNumber,
+        electricType,
+        userName,
+        userAddress,
+        phone,
+        applyAgreementCapacity,
+        applyRunCapacity,
+        voltage,
+        applyReason,
+        applyRemark,
+        applyStatus,
+        useElectricType,
+        stationId,
+        lineId,
+        zoneId,
+        transformerId,
+        calcPointerName,
+        calcMode,
+        calcRelation,
+        checkRemark,
+        eleNumRecorderId,
+        billing
+  </sql> 
+
+  <sql id="Value_Column_List" >
+        #{listCheckerId},
+        #{listRecorderId},
+        #{recordStatus},
+        #{createTime},
+        #{userNumber},
+        #{electricType},
+        #{userName},
+        #{userAddress},
+        #{phone},
+        #{applyAgreementCapacity},
+        #{applyRunCapacity},
+        #{voltage},
+        #{applyReason},
+        #{applyRemark},
+        #{applyStatus},
+        #{useElectricType},
+        #{stationId},
+        #{lineId},
+        #{zoneId},
+        #{transformerId},
+        #{calcPointerName},
+        #{calcMode},
+        #{calcRelation},
+        #{checkRemark},
+        #{eleNumRecorderId},
+        #{billing}
+  </sql>
+  <sql id="whereCondition">
+        <if test="applyId != null and applyId != ''">
+            AND applyId like CONCAT('%',#{applyId},'%')
+        </if>
+        <if test="listCheckerId != null and listCheckerId != ''">
+            AND listCheckerId like CONCAT('%',#{listCheckerId},'%')
+        </if>
+        <if test="listRecorderId != null and listRecorderId != ''">
+            AND listRecorderId like CONCAT('%',#{listRecorderId},'%')
+        </if>
+        <if test="recordStatus != null and recordStatus != ''">
+            AND recordStatus like CONCAT('%',#{recordStatus},'%')
+        </if>
+        <if test="createTime != null and createTime != ''">
+            AND createTime like CONCAT('%',#{createTime},'%')
+        </if>
+        <if test="userNumber != null and userNumber != ''">
+            AND userNumber like CONCAT('%',#{userNumber},'%')
+        </if>
+        <if test="electricType != null and electricType != ''">
+            AND electricType like CONCAT('%',#{electricType},'%')
+        </if>
+        <if test="userName != null and userName != ''">
+            AND userName like CONCAT('%',#{userName},'%')
+        </if>
+        <if test="userAddress != null and userAddress != ''">
+            AND userAddress like CONCAT('%',#{userAddress},'%')
+        </if>
+        <if test="phone != null and phone != ''">
+            AND phone like CONCAT('%',#{phone},'%')
+        </if>
+        <if test="applyAgreementCapacity != null and applyAgreementCapacity != ''">
+            AND applyAgreementCapacity like CONCAT('%',#{applyAgreementCapacity},'%')
+        </if>
+        <if test="applyRunCapacity != null and applyRunCapacity != ''">
+            AND applyRunCapacity like CONCAT('%',#{applyRunCapacity},'%')
+        </if>
+        <if test="voltage != null and voltage != ''">
+            AND voltage like CONCAT('%',#{voltage},'%')
+        </if>
+        <if test="applyReason != null and applyReason != ''">
+            AND applyReason like CONCAT('%',#{applyReason},'%')
+        </if>
+        <if test="applyRemark != null and applyRemark != ''">
+            AND applyRemark like CONCAT('%',#{applyRemark},'%')
+        </if>
+        <if test="applyStatus != null and applyStatus != ''">
+            AND applyStatus like CONCAT('%',#{applyStatus},'%')
+        </if>
+        <if test="useElectricType != null and useElectricType != ''">
+            AND useElectricType like CONCAT('%',#{useElectricType},'%')
+        </if>
+        <if test="stationId != null and stationId != ''">
+            AND stationId like CONCAT('%',#{stationId},'%')
+        </if>
+        <if test="lineId != null and lineId != ''">
+            AND lineId like CONCAT('%',#{lineId},'%')
+        </if>
+        <if test="zoneId != null and zoneId != ''">
+            AND zoneId like CONCAT('%',#{zoneId},'%')
+        </if>
+        <if test="transformerId != null and transformerId != ''">
+            AND transformerId like CONCAT('%',#{transformerId},'%')
+        </if>
+        <if test="calcPointerName != null and calcPointerName != ''">
+            AND calcPointerName like CONCAT('%',#{calcPointerName},'%')
+        </if>
+        <if test="calcMode != null and calcMode != ''">
+            AND calcMode like CONCAT('%',#{calcMode},'%')
+        </if>
+        <if test="calcRelation != null and calcRelation != ''">
+            AND calcRelation like CONCAT('%',#{calcRelation},'%')
+        </if>
+        <if test="checkRemark != null and checkRemark != ''">
+            AND checkRemark like CONCAT('%',#{checkRemark},'%')
+        </if>
+        <if test="eleNumRecorderId != null and eleNumRecorderId != ''">
+            AND eleNumRecorderId like CONCAT('%',#{eleNumRecorderId},'%')
+        </if>
+        <if test="billing != null and billing != ''">
+            AND billing like CONCAT('%',#{billing},'%')
+        </if>
+  </sql>
+
+  <select id="findAll" resultMap="resMap_LadderInfo_ALl" parameterType="com.electric.wen.beans.ApplyBean">
+    SELECT
+      <include refid="All_Column_List"></include>
+    FROM m_apply
+  </select>
+  
+  <select id="listPage" resultMap="resMap_Ladder" parameterType="com.electric.wen.beans.ApplyBean">
+    SELECT
+      <include refid="All_Column_List"></include>
+    FROM m_apply
+    <where>
+      <include refid="whereCondition"></include>
+    </where>
+  </select>
+  
+  <select id="loadByPK" resultMap="resMap_Ladder" parameterType="java.lang.Integer">
+    SELECT
+      <include refid="All_Column_List"></include>
+    FROM m_apply
+    WHERE applyId = #{applyId}
+  </select>
+  
+  <insert id="insert" parameterType="com.electric.wen.beans.ApplyBean" useGeneratedKeys="true" keyProperty="applyId">
+    INSERT INTO m_apply (
+      <include refid="Insert_Column_List"></include> 
+    )VALUES(
+      <include refid="Value_Column_List"></include>
+    )
+  </insert>
+
+  <update id="update" parameterType="com.electric.wen.beans.ApplyBean">
+    UPDATE m_apply SET 
+        <if test="listCheckerId != null and listCheckerId != ''">
+            listCheckerId = #{listCheckerId},
+        </if>
+        <if test="listRecorderId != null and listRecorderId != ''">
+            listRecorderId = #{listRecorderId},
+        </if>
+        <if test="recordStatus != null and recordStatus != ''">
+            recordStatus = #{recordStatus},
+        </if>
+        <if test="createTime != null and createTime != ''">
+            createTime = #{createTime},
+        </if>
+        <if test="userNumber != null and userNumber != ''">
+            userNumber = #{userNumber},
+        </if>
+        <if test="electricType != null and electricType != ''">
+            electricType = #{electricType},
+        </if>
+        <if test="userName != null and userName != ''">
+            userName = #{userName},
+        </if>
+        <if test="userAddress != null and userAddress != ''">
+            userAddress = #{userAddress},
+        </if>
+        <if test="phone != null and phone != ''">
+            phone = #{phone},
+        </if>
+        <if test="applyAgreementCapacity != null and applyAgreementCapacity != ''">
+            applyAgreementCapacity = #{applyAgreementCapacity},
+        </if>
+        <if test="applyRunCapacity != null and applyRunCapacity != ''">
+            applyRunCapacity = #{applyRunCapacity},
+        </if>
+        <if test="voltage != null and voltage != ''">
+            voltage = #{voltage},
+        </if>
+        <if test="applyReason != null and applyReason != ''">
+            applyReason = #{applyReason},
+        </if>
+        <if test="applyRemark != null and applyRemark != ''">
+            applyRemark = #{applyRemark},
+        </if>
+        <if test="applyStatus != null and applyStatus != ''">
+            applyStatus = #{applyStatus},
+        </if>
+        <if test="useElectricType != null and useElectricType != ''">
+            useElectricType = #{useElectricType},
+        </if>
+        <if test="stationId != null and stationId != ''">
+            stationId = #{stationId},
+        </if>
+        <if test="lineId != null and lineId != ''">
+            lineId = #{lineId},
+        </if>
+        <if test="zoneId != null and zoneId != ''">
+            zoneId = #{zoneId},
+        </if>
+        <if test="transformerId != null and transformerId != ''">
+            transformerId = #{transformerId},
+        </if>
+        <if test="calcPointerName != null and calcPointerName != ''">
+            calcPointerName = #{calcPointerName},
+        </if>
+        <if test="calcMode != null and calcMode != ''">
+            calcMode = #{calcMode},
+        </if>
+        <if test="calcRelation != null and calcRelation != ''">
+            calcRelation = #{calcRelation},
+        </if>
+        <if test="checkRemark != null and checkRemark != ''">
+            checkRemark = #{checkRemark},
+        </if>
+        <if test="eleNumRecorderId != null and eleNumRecorderId != ''">
+            eleNumRecorderId = #{eleNumRecorderId},
+        </if>
+        <if test="billing != null and billing != ''">
+            billing = #{billing},
+        </if> 
+          applyId = #{applyId}
+    WHERE applyId = #{applyId}
+  </update>
+
+  <delete id="delete" parameterType="Integer">
+    DELETE FROM m_apply WHERE applyId = #{applyId}
+  </delete>
+  
+</mapper>
+  
