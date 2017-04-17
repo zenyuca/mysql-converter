@@ -10,7 +10,6 @@ fs.readFile('./sql/table.sql', 'utf-8', (err, data) => {
   tableNameRow.forEach((e) => {
     tableName = e.slice('CREATE TABLE `'.length, -1)
   })
- 
   let reg = /\s{2}.+,/g
   data = data.match(reg)
   let nameReg = /`.+`/g
@@ -172,7 +171,6 @@ ${javaBeanProperties}
   `
   return javaBeanContent
 }
-
 
 function generateMapper (list, tableName) {
   let names = generateName(tableName)
