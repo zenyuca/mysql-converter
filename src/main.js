@@ -15,7 +15,7 @@ fs.readFile('./sql/table.sql', 'utf-8', (err, data) => {
   data = data.match(reg)
   let nameReg = /`.+`/g
   let typeReg = /` \w+[\\(\s]/g
-  let commentReg = /'.+'/g
+  let commentReg = /COMMENT '.+'/g
   data.forEach((e) => {
     let o = {}
     o.type = e.match(typeReg)
@@ -24,12 +24,24 @@ fs.readFile('./sql/table.sql', 'utf-8', (err, data) => {
       o.name = e.match(nameReg)[0].replace(/`/g, '')
       if (e.match(commentReg)) {
         let comment = e.match(commentReg)[0] || ''
+        comment = comment.slice('COMMENT '.length)
         o.comment = comment.replace('\'', '').replace('\'', '')
       }
       list.push(o)
     }
   })
-  // console.log(JSON.stringify(list))
+  list.forEach((e, i) => {
+    if (e.type === 'text' || e.type === 'char' || e.type === 'varchar') {
+      e.type = 'String'
+    } else if (e.type === 'int' || e.type === 'smallint') {
+      e.type = 'Integer'
+    } else if (e.type === 'datetime' || e.type === 'date') {
+      e.type = 'Date'
+    } else if (e.type === 'double') {
+      e.type = 'Double'
+    }
+  })
+  // console.log(JSON.stringify(list, null, 2))
 
   let mapperContent = generateMapper(list, tableName)
   fs.writeFile('./mapper/mapper.xml', mapperContent, 'utf-8', (err, data) => {
@@ -40,6 +52,11 @@ fs.readFile('./sql/table.sql', 'utf-8', (err, data) => {
     if (err) throw err
   })
 })
+
+// ÅäÖÃÎÄ¼þ´¦
+let beanPackage = 'com.electric.wen.beans'
+let mapperPackage = 'com.electric.wen.mapper'
+
 
 function key (list) {
   let str = ''
@@ -93,12 +110,18 @@ function resultMap (list) {
   return str
 }
 
-function listPage (list) {
+function whereCondition (list) {
   let str = ''
   list.forEach((e, i) => {
-    str += `        <if test="${e.name} != null and ${e.name} != ''">
+    if (e.type === 'Integer' || e.type === 'Double') {
+      str += `        <if test="${e.name} != null and ${e.name} != ''">
+            AND ${e.name} = #{${e.name}}
+        </if>`
+    } else {
+      str += `        <if test="${e.name} != null and ${e.name} != ''">
             AND ${e.name} like CONCAT('%',#{${e.name}},'%')
         </if>`
+    }
     if (i !== list.length - 1) {
       str += '\n'
     }
@@ -109,15 +132,7 @@ function listPage (list) {
 function java (list) {
   let str = ''
   list.forEach((e, i) => {
-    if (e.type === 'text' || e.type === 'char' || e.type === 'varchar') {
-      e.type = 'String'
-    } else if (e.type === 'int' || e.type === 'smallint') {
-      e.type = 'Integer'
-    } else if (e.type === 'datetime' || e.type === 'date') {
-      e.type = 'Date'
-    } else if (e.type === 'double') {
-      e.type = 'Double'
-    }
+    e.comment = e.comment || ''
     str += `    /** ${e.comment} */\n`
     str += `    private ${e.type} ${e.name};`
     str += '\n'
@@ -125,12 +140,27 @@ function java (list) {
   return str
 }
 
-function generateJavaBean (list, tableName) {
-  let prefix = tableName.slice(2)
-  prefix = prefix.slice(0, 1).toUpperCase() + prefix.slice(1)
+function generateName (tableName) {
+  let prefix = tableName
+  prefix = prefix.replace(/_\w/g, function (word) {
+    return word.slice(1).toUpperCase()
+  })
+  prefix = prefix.slice(1)
   let beanName = prefix + 'Bean'
+  let mapperName = prefix + 'Mapper'
+  return {
+    beanName,
+    mapperName,
+    prefix: tableName.slice(2)
+  }
+}
+
+function generateJavaBean (list, tableName) {
+  let names = generateName(tableName)
+  let beanName = names.beanName
+
   let javaBeanProperties = java(list)
-  let javaBeanContent = `package com.electric.wen.beans;
+  let javaBeanContent = `package ${beanPackage};
 import java.io.Serializable;
 
 import com.bingbee.card.util.paging.Page;
@@ -145,73 +175,82 @@ ${javaBeanProperties}
 
 
 function generateMapper (list, tableName) {
-  let prefix = tableName.slice(2)
-  prefix = prefix.slice(0, 1).toUpperCase() + prefix.slice(1)
-  let mapperName = prefix + 'Mapper'
-  let beanName = prefix + 'Bean'
+  let names = generateName(tableName)
+  let prefix = names.prefix
+  let beanName = names.beanName
+  let mapperName = names.mapperName
 
   let resultMapContent = resultMap(list)
   let pkName = list[0].name
-  let whereConditionConent = listPage(list)
+  let whereConditionConent = whereCondition(list)
   let kvConent = kv(list.slice(1))
   let valueContent = value(list.slice(1))
   let keyContent = key(list.slice(1))
 
   let mapper = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.electric.wen.mapper.${mapperName}">
-  <resultMap id="resMap_${prefix}" type="com.electric.wen.beans.${beanName}">
+<mapper namespace="${mapperPackage}.${mapperName}">
+  <resultMap id="resultmap_${prefix}" type="${beanPackage}.${beanName}">
 ${resultMapContent}
   </resultMap>
 
-  <sql id="All_Column_List" >
+  <sql id="all_column_list" >
         ${pkName},
-        <include refid="Insert_Column_List"></include>
+        <include refid="insert_column_list"></include>
   </sql>
   
-  <sql id="Insert_Column_List" >
+  <sql id="insert_column_list" >
 ${keyContent}
   </sql> 
 
-  <sql id="Value_Column_List" >
+  <sql id="value_column_list" >
 ${valueContent}
   </sql>
-  <sql id="whereCondition">
+  <sql id="where_condition">
 ${whereConditionConent}
   </sql>
 
-  <select id="findAll" resultMap="resMap_${prefix}" parameterType="com.electric.wen.beans.${beanName}">
+  <select id="findAll" resultMap="resultmap_${prefix}" parameterType="${beanPackage}.${beanName}">
     SELECT
-      <include refid="All_Column_List"></include>
+      <include refid="all_column_list"></include>
     FROM ${tableName}
   </select>
   
-  <select id="listPage" resultMap="resMap_${prefix}" parameterType="com.electric.wen.beans.${beanName}">
+  <select id="listPage" resultMap="resultmap_${prefix}" parameterType="${beanPackage}.${beanName}">
     SELECT
-      <include refid="All_Column_List"></include>
+      <include refid="all_column_list"></include>
     FROM ${tableName}
     <where>
-      <include refid="whereCondition"></include>
+      <include refid="where_condition"></include>
     </where>
     ORDER BY ${pkName} DESC
   </select>
-  
-  <select id="loadByPK" resultMap="resMap_${prefix}" parameterType="java.lang.Integer">
+
+  <select id="load" resultMap="resultmap_${prefix}" parameterType="${beanPackage}.${beanName}">
     SELECT
-      <include refid="All_Column_List"></include>
+      <include refid="all_column_list"></include>
+    FROM ${tableName}
+    <where>
+      <include refid="where_condition"></include>
+    </where>
+  </select>
+  
+  <select id="loadByPK" resultMap="resultmap_${prefix}" parameterType="java.lang.Integer">
+    SELECT
+      <include refid="all_column_list"></include>
     FROM ${tableName}
     WHERE ${pkName} = #{${pkName}}
   </select>
   
-  <insert id="insert" parameterType="com.electric.wen.beans.${beanName}" useGeneratedKeys="true" keyProperty="${pkName}">
+  <insert id="insert" parameterType="${beanPackage}.${beanName}" useGeneratedKeys="true" keyProperty="${pkName}">
     INSERT INTO ${tableName} (
-      <include refid="Insert_Column_List"></include> 
+      <include refid="insert_column_list"></include> 
     )VALUES(
-      <include refid="Value_Column_List"></include>
+      <include refid="value_column_list"></include>
     )
   </insert>
 
-  <update id="update" parameterType="com.electric.wen.beans.${beanName}">
+  <update id="update" parameterType="${beanPackage}.${beanName}">
     UPDATE ${tableName} SET 
 ${kvConent} 
           ${pkName} = #{${pkName}}
