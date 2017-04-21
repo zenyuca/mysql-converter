@@ -213,7 +213,6 @@ ${whereConditionConent}
       <include refid="all_column_list"></include>
     FROM ${tableName}
   </select>
-  
   <select id="listPage" resultMap="resultmap_${prefix}" parameterType="${beanPackage}.${beanName}">
     SELECT
       <include refid="all_column_list"></include>
@@ -238,6 +237,16 @@ ${whereConditionConent}
       <include refid="all_column_list"></include>
     FROM ${tableName}
     WHERE ${pkName} = #{${pkName}}
+  </select>
+
+  <select id="findByPKs" resultMap="resultmap_${prefix}" parameterType="java.lang.Integer">
+    SELECT
+      <include refid="All_Column_List"></include> 
+    FROM ${tableName}
+    WHERE ${pkName} IN
+    <foreach collection="array" item="${pkName}" open="(" separator="," close=")">
+      #{${pkName}}
+    </foreach>
   </select>
   
   <insert id="insert" parameterType="${beanPackage}.${beanName}" useGeneratedKeys="true" keyProperty="${pkName}">
