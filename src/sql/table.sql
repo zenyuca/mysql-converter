@@ -1,30 +1,32 @@
 /*
 Navicat MySQL Data Transfer
 
-Source Server         : local
-Source Server Version : 50520
-Source Host           : 192.168.2.130:3306
-Source Database       : wen_data
+Source Server         : remote
+Source Server Version : 50528
+Source Host           : 117.78.42.184:3306
+Source Database       : yun_data
 
 Target Server Type    : MYSQL
-Target Server Version : 50520
+Target Server Version : 50528
 File Encoding         : 65001
 
-Date: 2017-04-14 10:28:40
+Date: 2017-07-11 08:57:39
 */
 
 SET FOREIGN_KEY_CHECKS=0;
 
 -- ----------------------------
--- Table structure for m_ladder
+-- Table structure for yun_user_apply
 -- ----------------------------
-DROP TABLE IF EXISTS `m_ladder`;
-CREATE TABLE `m_ladder` (
-  `ladderId` int(11) NOT NULL AUTO_INCREMENT COMMENT '阶梯id',
-  `ladderName` varchar(255) DEFAULT NULL COMMENT '阶梯名称',
-  `ladderDesc` varchar(255) DEFAULT NULL COMMENT '阶梯描述',
-  `createTime` datetime DEFAULT NULL COMMENT '创建时间',
-  `ladderInfo` varchar(2000) DEFAULT NULL COMMENT '阶梯详情, JSON形式',
-  PRIMARY KEY (`ladderId`)
-) ENGINE=MyISAM AUTO_INCREMENT=139 DEFAULT CHARSET=utf8;
-SET FOREIGN_KEY_CHECKS=1;
+DROP TABLE IF EXISTS `yun_user_apply`;
+CREATE TABLE `yun_user_apply` (
+  `apply_seq` int(255) NOT NULL AUTO_INCREMENT,
+  `create_time` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `apply_user_seq` int(255) DEFAULT NULL,
+  `organization_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `organization_describe` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `state` int(255) DEFAULT NULL,
+  `key` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `value` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  PRIMARY KEY (`apply_seq`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
