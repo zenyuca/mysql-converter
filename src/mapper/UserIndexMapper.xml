@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bingbee.yun.mapper.UserIndexMapper">
+
+  <resultMap id="resultmap_yun_user_index" type="com.bingbee.yun.beans.UserIndex">
+    <id column="index_seq" property="indexSeq" />
+    <result column="url" property="url" />
+    <result column="create_time" property="createTime" />
+  </resultMap>
+
+  <sql id="all_column_list" >
+    index_seq,
+    <include refid="insert_column_list"></include>
+  </sql>
+  
+  <sql id="insert_column_list" >
+    url,
+    create_time
+  </sql> 
+
+  <sql id="value_column_list" >
+    #{url},
+    #{createTime}
+  </sql>
+
+  <sql id="where_condition">
+    <if test="indexSeq != null and indexSeq != ''">
+      AND index_seq = #{indexSeq}
+    </if>
+    <if test="url != null and url != ''">
+      AND url like CONCAT('%',#{url},'%')
+    </if>
+    <if test="createTime != null and createTime != ''">
+      AND create_time like CONCAT('%',#{createTime},'%')
+    </if>
+  </sql>
+
+  <select id="findAll" resultMap="resultmap_yun_user_index" parameterType="com.bingbee.yun.beans.UserIndex">
+    SELECT
+      <include refid="all_column_list"></include>
+    FROM yun_user_index
+  </select>
+
+  <select id="listPage" resultMap="resultmap_yun_user_index" parameterType="com.bingbee.yun.beans.UserIndex">
+    SELECT
+      <include refid="all_column_list"></include>
+    FROM yun_user_index
+    <where>
+      <include refid="where_condition"></include>
+    </where>
+    ORDER BY index_seq DESC
+  </select>
+
+  <select id="load" resultMap="resultmap_yun_user_index" parameterType="com.bingbee.yun.beans.UserIndex">
+    SELECT
+      <include refid="all_column_list"></include>
+    FROM yun_user_index
+    <where>
+      <include refid="where_condition"></include>
+    </where>
+  </select>
+  
+  <select id="loadByPK" resultMap="resultmap_yun_user_index" parameterType="java.lang.Integer">
+    SELECT
+      <include refid="all_column_list"></include>
+    FROM yun_user_index
+    WHERE index_seq = #{index_seq}
+  </select>
+
+  <select id="findByPKs" resultMap="resultmap_yun_user_index" parameterType="java.lang.Integer">
+    SELECT
+      <include refid="all_column_list"></include> 
+    FROM yun_user_index
+    WHERE index_seq IN
+    <foreach collection="array" item="index_seq" open="(" separator="," close=")">
+      #{index_seq}
+    </foreach>
+  </select>
+  
+  <insert id="insert" parameterType="com.bingbee.yun.beans.UserIndex" useGeneratedKeys="true" keyProperty="index_seq">
+    INSERT INTO yun_user_index (
+      <include refid="insert_column_list"></include> 
+    )VALUES(
+      <include refid="value_column_list"></include>
+    )
+  </insert>
+
+  <update id="update" parameterType="com.bingbee.yun.beans.UserIndex">
+    UPDATE yun_user_index SET 
+      <if test="url != null and url != ''">
+        url = #{url},
+      </if>
+      <if test="createTime != null and createTime != ''">
+        create_time = #{createTime},
+      </if> 
+      index_seq = #{index_seq}
+    WHERE index_seq = #{index_seq}
+  </update>
+
+  <delete id="delete" parameterType="Integer">
+    DELETE FROM yun_user_index WHERE index_seq = #{index_seq}
+  </delete>
+  
+</mapper>
+  

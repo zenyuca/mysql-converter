@@ -14,7 +14,7 @@ fs.readFile('./sql/table.sql', 'utf-8', (err, data) => {
   tableNameRow.forEach((e) => {
     tableName = e.slice('CREATE TABLE `'.length, -1)
   })
-  let reg = /\s{2}.+,/g
+  let reg = /\s{2}`.+/g
   data = data.match(reg)
   let nameReg = /`.+`/g
   let typeReg = /` \w+[\\(\s]/g
@@ -164,10 +164,10 @@ function java (list) {
 
 function generateName (tableName) {
   let prefix = tableName
+  prefix = prefix.slice(prefix.indexOf('_'))
   prefix = prefix.replace(/_\w/g, function (word) {
     return word.slice(-1).toUpperCase()
   })
-  prefix = prefix.indexOf('m') == 0 ? prefix.slice(1) : prefix
   prefix = prefix.replace(/^\w/, (value) => {
     return value.toUpperCase()
   })

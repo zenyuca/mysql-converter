@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.bingbee.yun.mapper.YunUserApplyMapper">
+<mapper namespace="com.bingbee.yun.mapper.UserApplyMapper">
 
-  <resultMap id="resultmap_yun_user_apply" type="com.bingbee.yun.beans.YunUserApply">
+  <resultMap id="resultmap_yun_user_apply" type="com.bingbee.yun.beans.UserApply">
     <id column="apply_seq" property="applySeq" />
     <result column="create_time" property="createTime" />
     <result column="apply_user_seq" property="applyUserSeq" />
     <result column="organization_name" property="organizationName" />
     <result column="organization_describe" property="organizationDescribe" />
     <result column="state" property="state" />
-    <result column="key" property="key" />
-    <result column="value" property="value" />
+    <result column="c_key" property="cKey" />
+    <result column="c_value" property="cValue" />
   </resultMap>
 
   <sql id="all_column_list" >
@@ -24,8 +24,8 @@
     organization_name,
     organization_describe,
     state,
-    key,
-    value
+    c_key,
+    c_value
   </sql> 
 
   <sql id="value_column_list" >
@@ -34,8 +34,8 @@
     #{organizationName},
     #{organizationDescribe},
     #{state},
-    #{key},
-    #{value}
+    #{cKey},
+    #{cValue}
   </sql>
 
   <sql id="where_condition">
@@ -57,21 +57,21 @@
     <if test="state != null and state != ''">
       AND state = #{state}
     </if>
-    <if test="key != null and key != ''">
-      AND key like CONCAT('%',#{key},'%')
+    <if test="cKey != null and cKey != ''">
+      AND c_key like CONCAT('%',#{cKey},'%')
     </if>
-    <if test="value != null and value != ''">
-      AND value like CONCAT('%',#{value},'%')
+    <if test="cValue != null and cValue != ''">
+      AND c_value like CONCAT('%',#{cValue},'%')
     </if>
   </sql>
 
-  <select id="findAll" resultMap="resultmap_yun_user_apply" parameterType="com.bingbee.yun.beans.YunUserApply">
+  <select id="findAll" resultMap="resultmap_yun_user_apply" parameterType="com.bingbee.yun.beans.UserApply">
     SELECT
       <include refid="all_column_list"></include>
     FROM yun_user_apply
   </select>
 
-  <select id="listPage" resultMap="resultmap_yun_user_apply" parameterType="com.bingbee.yun.beans.YunUserApply">
+  <select id="listPage" resultMap="resultmap_yun_user_apply" parameterType="com.bingbee.yun.beans.UserApply">
     SELECT
       <include refid="all_column_list"></include>
     FROM yun_user_apply
@@ -81,7 +81,7 @@
     ORDER BY apply_seq DESC
   </select>
 
-  <select id="load" resultMap="resultmap_yun_user_apply" parameterType="com.bingbee.yun.beans.YunUserApply">
+  <select id="load" resultMap="resultmap_yun_user_apply" parameterType="com.bingbee.yun.beans.UserApply">
     SELECT
       <include refid="all_column_list"></include>
     FROM yun_user_apply
@@ -107,7 +107,7 @@
     </foreach>
   </select>
   
-  <insert id="insert" parameterType="com.bingbee.yun.beans.YunUserApply" useGeneratedKeys="true" keyProperty="apply_seq">
+  <insert id="insert" parameterType="com.bingbee.yun.beans.UserApply" useGeneratedKeys="true" keyProperty="apply_seq">
     INSERT INTO yun_user_apply (
       <include refid="insert_column_list"></include> 
     )VALUES(
@@ -115,7 +115,7 @@
     )
   </insert>
 
-  <update id="update" parameterType="com.bingbee.yun.beans.YunUserApply">
+  <update id="update" parameterType="com.bingbee.yun.beans.UserApply">
     UPDATE yun_user_apply SET 
       <if test="createTime != null and createTime != ''">
         create_time = #{createTime},
@@ -132,11 +132,11 @@
       <if test="state != null and state != ''">
         state = #{state},
       </if>
-      <if test="key != null and key != ''">
-        key = #{key},
+      <if test="cKey != null and cKey != ''">
+        c_key = #{cKey},
       </if>
-      <if test="value != null and value != ''">
-        value = #{value},
+      <if test="cValue != null and cValue != ''">
+        c_value = #{cValue},
       </if> 
       apply_seq = #{apply_seq}
     WHERE apply_seq = #{apply_seq}
