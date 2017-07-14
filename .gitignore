@@ -1,4 +1,4 @@
-/node_modules
-/mapper
-/javaBean
-/sql
+node_modules/
+src/sql/
+src/build/
+src/page/
