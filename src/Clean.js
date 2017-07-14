@@ -3,7 +3,7 @@ let fse = require('fs-extra')
 class Clean {
   constructor () {
     this.dirList = [
-      'build/',
+      './build/',
       './build/mapper/',
       './build/beans/',
       './build/service/',

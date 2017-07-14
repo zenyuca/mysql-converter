@@ -1,4 +1,4 @@
 node_modules/
-src/sql/
-src/build/
-src/page/
+build/
+page/
+sql/
