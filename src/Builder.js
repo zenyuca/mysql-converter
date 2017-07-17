@@ -8,8 +8,8 @@ class Builder {
     parser.parseAll()
     this.fieldList = parser.parseList
 
-    this.packageName = 'com.bingbee.light'
-    this.beanPackage = `${this.packageName}.beans`
+    this.packageName = 'club.zenyuca.common'
+    this.beanPackage = `${this.packageName}.pojo`
     this.mapperPackage = `${this.packageName}.mapper`
     this.servicePackage = `${this.packageName}.service`
     this.controllerPackage = `${this.packageName}.controller`
@@ -26,9 +26,18 @@ class Builder {
     })
   }
 
+  _getPrimaryKey (key) {
+    if (stringUtil.isUpperCase(key)) {
+      return key.toLowerCase(key)
+    }
+  }
+
   _javaBean (list) {
     let str = ''
     list.forEach((e, i) => {
+      if (e.name === 'createTime' || e.name === 'createrId' || e.name === 'lastModifyTime' || e.name === 'updaterId') {
+        return false
+      }
       e.comment = e.comment || ''
       if (e.comment) {
         str += `    /** ${e.comment} */\n`
@@ -84,12 +93,15 @@ class Builder {
     return str
   }
 
-  _kv (list) {
+  _kv (list, primaryKey) {
     let str = ''
     list.forEach((e, i) => {
+      if (e.fieldName === primaryKey) {
+        return false
+      }
       str += `      <if test="${e.name} != null and ${e.name} != ''">
-          ${e.fieldName} = #{${e.name}},
-        </if>`
+        ${e.fieldName} = #{${e.name}},
+      </if>`
       if (i !== list.length - 1) {
         str += '\n'
       }
@@ -97,17 +109,20 @@ class Builder {
     return str
   }
 
-  _whereCondition (list) {
+  _whereCondition (list, primaryKey) {
     let str = ''
     list.forEach((e, i) => {
+      if (e.fieldName === primaryKey) {
+        return false
+      }
       if (e.type === 'Integer' || e.type === 'Double') {
         str += `    <if test="${e.name} != null and ${e.name} != ''">
-        AND ${e.fieldName} = #{${e.name}}
-      </if>`
+      AND ${e.fieldName} = #{${e.name}}
+    </if>`
       } else {
         str += `    <if test="${e.name} != null and ${e.name} != ''">
-        AND ${e.fieldName} like CONCAT('%',#{${e.name}},'%')
-      </if>`
+      AND ${e.fieldName} like CONCAT('%',#{${e.name}},'%')
+    </if>`
       }
       if (i !== list.length - 1) {
         str += '\n'
@@ -139,13 +154,16 @@ ${this._value(field.fieldList, field.primaryKey)}
   </sql>
 
   <sql id="where_condition">
-${this._whereCondition(field.fieldList)}
+${this._whereCondition(field.fieldList, field.primaryKey)}
   </sql>
 
   <select id="findAll" resultMap="resultmap_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
     SELECT
       <include refid="all_column_list"></include>
     FROM ${field.tableName}
+    <where>
+      <include refid="where_condition"></include>
+    </where>
     ORDER BY ${field.primaryKey} DESC
   </select>
 
@@ -195,7 +213,7 @@ ${this._whereCondition(field.fieldList)}
 
   <update id="update" parameterType="${this.beanPackage}.${field.beanName}">
     UPDATE ${field.tableName} SET 
-${this._kv(field.fieldList)} 
+${this._kv(field.fieldList, field.primaryKey)}
       ${field.primaryKey} = #{${field.primaryKey}}
     WHERE ${field.primaryKey} = #{${field.primaryKey}}
   </update>
@@ -203,16 +221,21 @@ ${this._kv(field.fieldList)}
   <delete id="delete" parameterType="Integer">
     DELETE FROM ${field.tableName} WHERE ${field.primaryKey} = #{${field.primaryKey}}
   </delete>
-  
-</mapper>
-  `
+
+  <select id="countAll" resultType="java.lang.Integer">
+    SELECT
+      count(1)
+    FROM
+      ${field.tableName}
+  </select>
+</mapper>`
     fs.writeFileSync('./build/mapper/' + field.beanName + 'Mapper.xml', mapper, 'utf-8')
   }
 
   buildMapperJava (field) {
     let context = `package ${this.mapperPackage};
 
-import com.bingbee.card.template.BaseMapper;
+import ${this.packageName}.template.BaseMapper;
 import ${this.beanPackage}.${field.beanName};
 
 public interface ${field.beanName}Mapper extends BaseMapper<${field.beanName}, Integer> {
@@ -224,7 +247,7 @@ public interface ${field.beanName}Mapper extends BaseMapper<${field.beanName}, I
   buildService (field) {
     let context = `package ${this.servicePackage};
 
-import com.bingbee.card.template.BaseService;
+import ${this.packageName}.template.BaseService;
 import ${this.beanPackage}.${field.beanName};
 
 public interface ${field.beanName}Service extends BaseService<${field.beanName}, Integer> {
@@ -234,7 +257,7 @@ public interface ${field.beanName}Service extends BaseService<${field.beanName},
   }
 
   buildServiceImpl (field) {
-    let primaryKey = stringUtil.headToUpperCase(stringUtil.toCamelCase(field.primaryKey))
+    let primaryKey = stringUtil.headToUpperCase(stringUtil.toCamelCase(this._getPrimaryKey(field.primaryKey)))
     let context = `package ${this.servicePackage}.impl;
 
 import java.util.Date;
@@ -275,7 +298,7 @@ public class ${field.beanName}ServiceImpl implements ${field.beanName}Service {
 
   @Override
   public int countAll() {
-    return 0;
+    return this.${field.varBeanName}Mapper.countAll();
   }
 
   @Override
@@ -310,7 +333,7 @@ public class ${field.beanName}ServiceImpl implements ${field.beanName}Service {
   buildController (field) {
     let urlprefix = 'yun'
     let prefix = 'light'
-    let primaryKey = stringUtil.headToUpperCase(stringUtil.toCamelCase(field.primaryKey))
+    let primaryKey = stringUtil.headToUpperCase(stringUtil.toCamelCase(this._getPrimaryKey(field.primaryKey)))
     let context = `package ${this.controllerPackage};
 
   import java.util.List;
@@ -322,9 +345,9 @@ public class ${field.beanName}ServiceImpl implements ${field.beanName}Service {
   import org.springframework.web.servlet.ModelAndView;
 
   import com.alibaba.fastjson.JSON;
-  import com.bingbee.card.config.Config;
-  import com.bingbee.card.template.BaseController;
-  import com.bingbee.card.util.fastjsonx.JSONData;
+  import ${this.packageName}.config.Config;
+  import ${this.packageName}.template.BaseController;
+  import ${this.packageName}.util.fastjsonx.JSONData;
   import ${this.packageName}.beans.${field.beanName};
   import ${this.packageName}.service.${field.beanName}Service;
   import com.electric.wen.interceptor.CheckToken;
@@ -395,15 +418,16 @@ public class ${field.beanName}ServiceImpl implements ${field.beanName}Service {
   buildJavaBean (field) {
     let context = `package ${this.beanPackage};
 
-  import java.io.Serializable;
-  import com.bingbee.card.util.paging.Page;
-  import com.electric.wen.beans.BaseBean;
-  public class ${field.beanName} extends BaseBean implements Serializable {
+import java.io.Serializable;
+import ${this.packageName}.util.paging.Page;
+import ${this.beanPackage}.BasePojo;
+
+public class ${field.beanName} extends BasePojo implements Serializable {
     private static final long serialVersionUID = 1L;
     private Page paper;
 ${this._javaBean(field.fieldList)}
-  }`
-    fs.writeFileSync('./build/beans/' + field.beanName + '.java', context, 'utf-8')
+}`
+    fs.writeFileSync('./build/pojo/' + field.beanName + '.java', context, 'utf-8')
   }
 
   _listPageSearch (field) {

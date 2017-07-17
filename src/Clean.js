@@ -5,7 +5,7 @@ class Clean {
     this.dirList = [
       './build/',
       './build/mapper/',
-      './build/beans/',
+      './build/pojo/',
       './build/service/',
       './build/service/impl/',
       './build/controller/',
