@@ -33,6 +33,9 @@ class ScriptParser {
       // 获得字段名称
       let fieldName = e.match(/\s{2}`\w+/)[0].replace(/\s{2}`/, '')
       field.fieldName = fieldName
+      if (stringUtil.isUpperCase(fieldName)) {
+        fieldName = fieldName.toLowerCase()
+      }
       field.name = stringUtil.toCamelCase(fieldName)
 
       let split = e.split(' ')

@@ -17,6 +17,10 @@ class StringUtil {
     })
     return newName
   }
+
+  isUpperCase (name) {
+    return name === name.toUpperCase()
+  }
 }
 
 module.exports = {
