@@ -8,7 +8,7 @@ class Builder {
     parser.parseAll()
     this.fieldList = parser.parseList
 
-    this.packageName = 'com.bingbee.light'
+    this.packageName = 'com.bingbee.gprs'
     this.beanPackage = `${this.packageName}.beans`
     this.mapperPackage = `${this.packageName}.mapper`
     this.servicePackage = `${this.packageName}.service`
@@ -88,8 +88,8 @@ class Builder {
     let str = ''
     list.forEach((e, i) => {
       str += `      <if test="${e.name} != null and ${e.name} != ''">
-          ${e.fieldName} = #{${e.name}},
-        </if>`
+        ${e.fieldName} = #{${e.name}},
+      </if>`
       if (i !== list.length - 1) {
         str += '\n'
       }
@@ -102,12 +102,12 @@ class Builder {
     list.forEach((e, i) => {
       if (e.type === 'Integer' || e.type === 'Double') {
         str += `    <if test="${e.name} != null and ${e.name} != ''">
-        AND ${e.fieldName} = #{${e.name}}
-      </if>`
+      AND ${e.fieldName} = #{${e.name}}
+    </if>`
       } else {
         str += `    <if test="${e.name} != null and ${e.name} != ''">
-        AND ${e.fieldName} like CONCAT('%',#{${e.name}},'%')
-      </if>`
+      AND ${e.fieldName} like CONCAT('%',#{${e.name}},'%')
+    </if>`
       }
       if (i !== list.length - 1) {
         str += '\n'
@@ -146,6 +146,9 @@ ${this._whereCondition(field.fieldList)}
     SELECT
       <include refid="all_column_list"></include>
     FROM ${field.tableName}
+    <where>
+      <include refid="where_condition"></include>
+    </where>
     ORDER BY ${field.primaryKey} DESC
   </select>
 
@@ -204,8 +207,7 @@ ${this._kv(field.fieldList)}
     DELETE FROM ${field.tableName} WHERE ${field.primaryKey} = #{${field.primaryKey}}
   </delete>
   
-</mapper>
-  `
+</mapper>`
     fs.writeFileSync('./build/mapper/' + field.beanName + 'Mapper.xml', mapper, 'utf-8')
   }
 
@@ -308,8 +310,8 @@ public class ${field.beanName}ServiceImpl implements ${field.beanName}Service {
   }
 
   buildController (field) {
-    let urlprefix = 'yun'
-    let prefix = 'light'
+    let urlprefix = 'positioning'
+    let prefix = 'gps'
     let primaryKey = stringUtil.headToUpperCase(stringUtil.toCamelCase(field.primaryKey))
     let context = `package ${this.controllerPackage};
 
@@ -335,7 +337,7 @@ public class ${field.beanName}ServiceImpl implements ${field.beanName}Service {
     @Autowired
     private ${field.beanName}Service ${field.varBeanName}Service;
     
-    public static final String RESPONSE_URL = "yun/${field.varBeanName}/listpage.html";
+    public static final String RESPONSE_URL = "${urlprefix}/${field.varBeanName}/listpage.html";
     
     @RequestMapping(value = "/listpage")
     public ModelAndView listpage(${field.beanName} ${field.varBeanName}) {
