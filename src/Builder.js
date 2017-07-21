@@ -8,7 +8,7 @@ class Builder {
     parser.parseAll()
     this.fieldList = parser.parseList
 
-    this.packageName = 'com.bingbee.gprs'
+    this.packageName = 'com.bingbee.light'
     this.beanPackage = `${this.packageName}.beans`
     this.mapperPackage = `${this.packageName}.mapper`
     this.servicePackage = `${this.packageName}.service`
@@ -29,6 +29,9 @@ class Builder {
   _javaBean (list) {
     let str = ''
     list.forEach((e, i) => {
+      if (e.name === 'createTime') {
+        return false
+      }
       e.comment = e.comment || ''
       if (e.comment) {
         str += `    /** ${e.comment} */\n`
@@ -100,7 +103,8 @@ class Builder {
   _whereCondition (list) {
     let str = ''
     list.forEach((e, i) => {
-      if (e.type === 'Integer' || e.type === 'Double') {
+      console.log(e.javaType)
+      if (e.javaType === 'Integer' || e.javaType === 'Double') {
         str += `    <if test="${e.name} != null and ${e.name} != ''">
       AND ${e.fieldName} = #{${e.name}}
     </if>`
@@ -310,8 +314,8 @@ public class ${field.beanName}ServiceImpl implements ${field.beanName}Service {
   }
 
   buildController (field) {
-    let urlprefix = 'positioning'
-    let prefix = 'gps'
+    let urlprefix = 'yun'
+    let prefix = 'light'
     let primaryKey = stringUtil.headToUpperCase(stringUtil.toCamelCase(field.primaryKey))
     let context = `package ${this.controllerPackage};
 
@@ -397,14 +401,14 @@ public class ${field.beanName}ServiceImpl implements ${field.beanName}Service {
   buildJavaBean (field) {
     let context = `package ${this.beanPackage};
 
-  import java.io.Serializable;
-  import com.bingbee.card.util.paging.Page;
-  import com.electric.wen.beans.BaseBean;
-  public class ${field.beanName} extends BaseBean implements Serializable {
+import java.io.Serializable;
+import com.bingbee.card.util.paging.Page;
+import com.electric.wen.beans.BaseBean;
+public class ${field.beanName} extends BaseBean implements Serializable {
     private static final long serialVersionUID = 1L;
     private Page paper;
 ${this._javaBean(field.fieldList)}
-  }`
+}`
     fs.writeFileSync('./build/beans/' + field.beanName + '.java', context, 'utf-8')
   }
 
@@ -488,8 +492,10 @@ ${this._javaBean(field.fieldList)}
                   </button>
                   <h3>查询</h3>
                 </div>
-                <form class="form-horizontal" method="post" action="listpage.html" id="dataForm" style="overflow-y: auto; overflow-x: hidden; height: 100%;">
+                <form class="form-horizontal" method="post" action="listpage.html" id="form1" style="overflow-y: auto; overflow-x: hidden; height: 100%;">
                   <div class="modal-body">
+                    <input type="hidden" name="page" id="page" value="1" />
+                    <input type="hidden" id="pageNumber" name="pageNumber" />
                     ${this._listPageSearch(field)}
                   </div>
                   <div class="modal-footer">
