@@ -131,6 +131,30 @@ class Builder {
     return str
   }
 
+  _loadWhereCondition (list, primaryKey) {
+    let str = ''
+    list.forEach((e, i) => {
+      if (e.fieldName === primaryKey) {
+        return false
+      }
+      if (e.javaType === 'Date') {
+        str += `    <if test="${e.name} != null and ${e.name} != ''">
+      <![CDATA[
+        AND DATE_FORMAT(${e.fieldName}, '%Y-%m-%d %H:%i:%s') <= DATE_FORMAT(#{${e.name}}, '%Y-%m-%d %H:%i:%s');
+      ]]>
+    </if>`
+      } else {
+        str += `    <if test="${e.name} != null and ${e.name} != ''">
+      AND ${e.fieldName} = #{${e.name}}
+    </if>`
+      }
+      if (i !== list.length - 1) {
+        str += '\n'
+      }
+    })
+    return str
+  }
+
   buildMapper (field) {
     let mapper = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -155,6 +179,10 @@ ${this._value(field.fieldList, field.primaryKey)}
 
   <sql id="where_condition">
 ${this._whereCondition(field.fieldList, field.primaryKey)}
+  </sql>
+
+  <sql id="load_where_condition">
+${this._loadWhereCondition(field.fieldList, field.primaryKey)}
   </sql>
 
   <select id="findAll" resultMap="resultmap_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
@@ -182,7 +210,7 @@ ${this._whereCondition(field.fieldList, field.primaryKey)}
       <include refid="all_column_list"></include>
     FROM ${field.tableName}
     <where>
-      <include refid="where_condition"></include>
+      <include refid="load_where_condition"></include>
     </where>
   </select>
   
