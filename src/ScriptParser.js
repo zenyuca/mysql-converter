@@ -42,7 +42,8 @@ class ScriptParser {
       // 获得数据库类型
       field.dbType = split[3].replace(/\(.+\)/, (value) => {
         return ''
-      })
+      }).replace(',', '')
+      console.log(field.dbType)
       field.javaType = this.toJavaType(field.dbType)
 
       // 获取注释内容
@@ -82,7 +83,7 @@ class ScriptParser {
   }
 
   toJavaType (type) {
-    if (type === 'text' || type === 'char' || type === 'varchar') {
+    if (type === 'text' || type === 'char' || type === 'varchar' || type === 'longtext') {
       return 'String'
     } else if (type === 'int' || type === 'smallint') {
       return 'Integer'

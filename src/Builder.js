@@ -42,14 +42,19 @@ class Builder {
     return str
   }
 
-  _resultMap (list) {
+  _resultMap (list, primaryKey, alias = '') {
     let str = ''
+    let prefix = ''
+    if (alias) {
+      alias += '_'
+    }
     list.forEach((e, i) => {
-      if (i === 0) {
-        str += `    <id column="${e.fieldName}" property="${e.name}" />`
+      if (e.fieldName === primaryKey) {
+        prefix = 'id'
       } else {
-        str += `    <result column="${e.fieldName}" property="${e.name}" />`
+        prefix = 'result'
       }
+      str += `    <${prefix} property="${e.name}" column="${alias}${e.fieldName}" />`
       if (i !== list.length - 1) {
         str += '\n'
       }
@@ -64,6 +69,18 @@ class Builder {
         return false
       }
       str += `    ${e.fieldName}`
+      if (i !== list.length - 1) {
+        str += ','
+        str += '\n'
+      }
+    })
+    return str
+  }
+
+  _aliasKey (list, alias) {
+    let str = ''
+    list.forEach((e, i) => {
+      str += `    \${alias}.${e.fieldName} AS ${alias}_${e.fieldName}`
       if (i !== list.length - 1) {
         str += ','
         str += '\n'
@@ -100,17 +117,43 @@ class Builder {
     return str
   }
 
-  _whereCondition (list) {
+  _whereCondition (list, alias = '') {
     let str = ''
+    if (alias) {
+      alias = `\${alias}.`
+    }
     list.forEach((e, i) => {
-      console.log(e.javaType)
       if (e.javaType === 'Integer' || e.javaType === 'Double') {
         str += `    <if test="${e.name} != null and ${e.name} != ''">
-      AND ${e.fieldName} = #{${e.name}}
+      AND ${alias}${e.fieldName} = #{${e.name}}
     </if>`
       } else {
         str += `    <if test="${e.name} != null and ${e.name} != ''">
-      AND ${e.fieldName} like CONCAT('%',#{${e.name}},'%')
+      AND ${alias}${e.fieldName} like CONCAT('%', #{${e.name}}, '%')
+    </if>`
+      }
+      if (i !== list.length - 1) {
+        str += '\n'
+      }
+    })
+    return str
+  }
+
+  _loadWhereCondition (list, primaryKey) {
+    let str = ''
+    list.forEach((e, i) => {
+      if (e.fieldName === primaryKey) {
+        return false
+      }
+      if (e.javaType === 'Date') {
+        str += `    <if test="${e.name} != null and ${e.name} != ''">
+      <![CDATA[
+        AND DATE_FORMAT(${e.fieldName}, '%Y-%m-%d %H:%i:%s') = DATE_FORMAT(#{${e.name}}, '%Y-%m-%d %H:%i:%s');
+      ]]>
+    </if>`
+      } else {
+        str += `    <if test="${e.name} != null and ${e.name} != ''">
+      AND ${e.fieldName} = #{${e.name}}
     </if>`
       }
       if (i !== list.length - 1) {
@@ -125,18 +168,26 @@ class Builder {
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="${this.mapperPackage}.${field.beanName}Mapper">
 
-  <resultMap id="resultmap_${field.varBeanName}" type="${this.beanPackage}.${field.beanName}">
-${this._resultMap(field.fieldList)}
+  <resultMap id="result_${field.varBeanName}" type="${this.beanPackage}.${field.beanName}">
+${this._resultMap(field.fieldList, field.primaryKey)}
+  </resultMap>
+
+  <resultMap id="result_${field.varBeanName}_alias" type="${this.beanPackage}.${field.beanName}">
+${this._resultMap(field.fieldList, field.primaryKey, field.varBeanName)}
   </resultMap>
 
   <sql id="all_column_list" >
     ${field.primaryKey},
     <include refid="insert_column_list"></include>
   </sql>
+
+  <sql id="all_column_list_alias" >
+${this._aliasKey(field.fieldList, field.varBeanName)}
+  </sql>
   
   <sql id="insert_column_list" >
 ${this._key(field.fieldList, field.primaryKey)}
-  </sql> 
+  </sql>
 
   <sql id="value_column_list" >
 ${this._value(field.fieldList, field.primaryKey)}
@@ -146,7 +197,15 @@ ${this._value(field.fieldList, field.primaryKey)}
 ${this._whereCondition(field.fieldList)}
   </sql>
 
-  <select id="findAll" resultMap="resultmap_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
+  <sql id="where_condition_alias">
+${this._whereCondition(field.fieldList, true)}
+  </sql>
+
+  <sql id="load_where_condition">
+${this._loadWhereCondition(field.fieldList, field.primaryKey)}
+  </sql>
+
+  <select id="findAll" resultMap="result_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
     SELECT
       <include refid="all_column_list"></include>
     FROM ${field.tableName}
@@ -156,7 +215,7 @@ ${this._whereCondition(field.fieldList)}
     ORDER BY ${field.primaryKey} DESC
   </select>
 
-  <select id="listPage" resultMap="resultmap_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
+  <select id="listPage" resultMap="result_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
     SELECT
       <include refid="all_column_list"></include>
     FROM ${field.tableName}
@@ -166,23 +225,23 @@ ${this._whereCondition(field.fieldList)}
     ORDER BY ${field.primaryKey} DESC
   </select>
 
-  <select id="load" resultMap="resultmap_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
+  <select id="load" resultMap="result_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
     SELECT
       <include refid="all_column_list"></include>
     FROM ${field.tableName}
     <where>
-      <include refid="where_condition"></include>
+      <include refid="load_where_condition"></include>
     </where>
   </select>
   
-  <select id="loadByPK" resultMap="resultmap_${field.varBeanName}" parameterType="java.lang.Integer">
+  <select id="loadByPK" resultMap="result_${field.varBeanName}" parameterType="java.lang.Integer">
     SELECT
       <include refid="all_column_list"></include>
     FROM ${field.tableName}
     WHERE ${field.primaryKey} = #{${field.primaryKey}}
   </select>
 
-  <select id="findByPKs" resultMap="resultmap_${field.varBeanName}" parameterType="java.lang.Integer">
+  <select id="findByPKs" resultMap="result_${field.varBeanName}" parameterType="java.lang.Integer">
     SELECT
       <include refid="all_column_list"></include> 
     FROM ${field.tableName}
