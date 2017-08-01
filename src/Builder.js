@@ -62,25 +62,21 @@ class Builder {
     return str
   }
 
-  _key (list, primaryKey) {
+  _key (list, primaryKey, alias = '') {
     let str = ''
+    let hasAlias = false
+    if (alias) {
+      hasAlias = true
+    }
     list.forEach((e, i) => {
       if (e.fieldName === primaryKey) {
         return false
       }
-      str += `    ${e.fieldName}`
-      if (i !== list.length - 1) {
-        str += ','
-        str += '\n'
+      if (!hasAlias) {
+        str += `    ${e.fieldName}`
+      } else {
+        str += `    \${alias}${e.fieldName} AS ${alias}_${e.fieldName}`
       }
-    })
-    return str
-  }
-
-  _aliasKey (list, alias) {
-    let str = ''
-    list.forEach((e, i) => {
-      str += `    \${alias}.${e.fieldName} AS ${alias}_${e.fieldName}`
       if (i !== list.length - 1) {
         str += ','
         str += '\n'
@@ -127,7 +123,7 @@ class Builder {
   _whereCondition (list, alias = '') {
     let str = ''
     if (alias) {
-      alias = `\${alias}.`
+      alias = `\${alias}`
     }
     list.forEach((e, i) => {
       if (e.javaType === 'Integer' || e.javaType === 'Double') {
@@ -137,7 +133,7 @@ class Builder {
       } else if (e.javaType === 'Date') {
         str += `    <if test="${e.name} != null ${this._isStringType(e)}">
       <![CDATA[
-        AND DATE_FORMAT(${e.fieldName}, '%Y-%m-%d %H:%i:%s') = DATE_FORMAT(#{${e.name}}, '%Y-%m-%d %H:%i:%s');
+        AND DATE_FORMAT(${alias}${e.fieldName}, '%Y-%m-%d %H:%i:%s') = DATE_FORMAT(#{${e.name}}, '%Y-%m-%d %H:%i:%s');
       ]]>
     </if>`
       } else {
@@ -152,21 +148,24 @@ class Builder {
     return str
   }
 
-  _loadWhereCondition (list, primaryKey) {
+  _loadWhereCondition (list, primaryKey, alias = '') {
     let str = ''
     list.forEach((e, i) => {
       if (e.fieldName === primaryKey) {
         return false
       }
+      if (alias) {
+        alias = `\${alias}`
+      }
       if (e.javaType === 'Date') {
         str += `    <if test="${e.name} != null ${this._isStringType(e)}">
       <![CDATA[
-        AND DATE_FORMAT(${e.fieldName}, '%Y-%m-%d %H:%i:%s') = DATE_FORMAT(#{${e.name}}, '%Y-%m-%d %H:%i:%s');
+        AND DATE_FORMAT(${alias}${e.fieldName}, '%Y-%m-%d %H:%i:%s') = DATE_FORMAT(#{${e.name}}, '%Y-%m-%d %H:%i:%s');
       ]]>
     </if>`
       } else {
         str += `    <if test="${e.name} != null ${this._isStringType(e)}">
-      AND ${e.fieldName} = #{${e.name}}
+      AND ${alias}${e.fieldName} = #{${e.name}}
     </if>`
       }
       if (i !== list.length - 1) {
@@ -182,22 +181,14 @@ class Builder {
 <mapper namespace="${this.mapperPackage}.${field.beanName}Mapper">
 
   <resultMap id="result_${field.varBeanName}" type="${this.beanPackage}.${field.beanName}">
-${this._resultMap(field.fieldList, field.primaryKey)}
-  </resultMap>
-
-  <resultMap id="result_${field.varBeanName}_alias" type="${this.beanPackage}.${field.beanName}">
 ${this._resultMap(field.fieldList, field.primaryKey, field.varBeanName)}
   </resultMap>
 
   <sql id="all_column_list" >
-    ${field.primaryKey},
-    <include refid="insert_column_list"></include>
+    \${alias}${field.primaryKey} AS ${field.varBeanName}_${field.primaryKey},
+${this._key(field.fieldList, field.primaryKey, field.varBeanName)}    
   </sql>
 
-  <sql id="all_column_list_alias" >
-${this._aliasKey(field.fieldList, field.varBeanName)}
-  </sql>
-  
   <sql id="insert_column_list" >
 ${this._key(field.fieldList, field.primaryKey)}
   </sql>
@@ -207,56 +198,68 @@ ${this._value(field.fieldList, field.primaryKey)}
   </sql>
 
   <sql id="where_condition">
-${this._whereCondition(field.fieldList)}
-  </sql>
-
-  <sql id="where_condition_alias">
 ${this._whereCondition(field.fieldList, true)}
   </sql>
 
   <sql id="load_where_condition">
-${this._loadWhereCondition(field.fieldList, field.primaryKey)}
+${this._loadWhereCondition(field.fieldList, field.primaryKey, true)}
   </sql>
 
   <select id="findAll" resultMap="result_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
     SELECT
-      <include refid="all_column_list"></include>
+      <include refid="all_column_list">
+        <property name="alias" value=""/>
+      </include>
     FROM ${field.tableName}
     <where>
-      <include refid="where_condition"></include>
+      <include refid="where_condition">
+        <property name="alias" value=""/>
+      </include>
     </where>
     ORDER BY ${field.primaryKey} DESC
   </select>
 
   <select id="listPage" resultMap="result_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
     SELECT
-      <include refid="all_column_list"></include>
+      <include refid="all_column_list">
+        <property name="alias" value=""/>
+      </include>
     FROM ${field.tableName}
     <where>
-      <include refid="where_condition"></include>
+      <include refid="where_condition">
+        <property name="alias" value=""/>
+      </include>
     </where>
     ORDER BY ${field.primaryKey} DESC
   </select>
 
   <select id="load" resultMap="result_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
     SELECT
-      <include refid="all_column_list"></include>
+      <include refid="all_column_list">
+        <property name="alias" value=""/>
+      </include>
     FROM ${field.tableName}
     <where>
-      <include refid="load_where_condition"></include>
+      <include refid="load_where_condition">
+        <property name="alias" value=""/>
+      </include>
     </where>
   </select>
   
   <select id="loadByPK" resultMap="result_${field.varBeanName}" parameterType="java.lang.Integer">
     SELECT
-      <include refid="all_column_list"></include>
+      <include refid="all_column_list">
+        <property name="alias" value=""/>
+      </include>
     FROM ${field.tableName}
     WHERE ${field.primaryKey} = #{${field.primaryKey}}
   </select>
 
   <select id="findByPKs" resultMap="result_${field.varBeanName}" parameterType="java.lang.Integer">
     SELECT
-      <include refid="all_column_list"></include> 
+      <include refid="all_column_list">
+        <property name="alias" value=""/>
+      </include> 
     FROM ${field.tableName}
     WHERE ${field.primaryKey} IN
     <foreach collection="array" item="${field.primaryKey}" open="(" separator="," close=")">
@@ -266,7 +269,9 @@ ${this._loadWhereCondition(field.fieldList, field.primaryKey)}
   
   <insert id="insert" parameterType="${this.beanPackage}.${field.beanName}" useGeneratedKeys="true" keyProperty="${field.primaryKey}">
     INSERT INTO ${field.tableName} (
-      <include refid="insert_column_list"></include> 
+      <include refid="insert_column_list">
+        <property name="alias" value=""/>
+      </include> 
     )VALUES(
       <include refid="value_column_list"></include>
     )
