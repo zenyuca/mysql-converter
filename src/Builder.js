@@ -104,10 +104,17 @@ class Builder {
     return str
   }
 
+  _isStringType (e) {
+    if (e.javaType === 'String') {
+      return `and ${e.name} != ''`
+    }
+    return ''
+  }
+
   _kv (list) {
     let str = ''
     list.forEach((e, i) => {
-      str += `      <if test="${e.name} != null and ${e.name} != ''">
+      str += `      <if test="${e.name} != null ${this._isStringType(e)}">
         ${e.fieldName} = #{${e.name}},
       </if>`
       if (i !== list.length - 1) {
@@ -124,11 +131,17 @@ class Builder {
     }
     list.forEach((e, i) => {
       if (e.javaType === 'Integer' || e.javaType === 'Double') {
-        str += `    <if test="${e.name} != null and ${e.name} != ''">
+        str += `    <if test="${e.name} != null ${this._isStringType(e)}">
       AND ${alias}${e.fieldName} = #{${e.name}}
     </if>`
+      } else if (e.javaType === 'Date') {
+        str += `    <if test="${e.name} != null ${this._isStringType(e)}">
+      <![CDATA[
+        AND DATE_FORMAT(${e.fieldName}, '%Y-%m-%d %H:%i:%s') = DATE_FORMAT(#{${e.name}}, '%Y-%m-%d %H:%i:%s');
+      ]]>
+    </if>`
       } else {
-        str += `    <if test="${e.name} != null and ${e.name} != ''">
+        str += `    <if test="${e.name} != null ${this._isStringType(e)}">
       AND ${alias}${e.fieldName} like CONCAT('%', #{${e.name}}, '%')
     </if>`
       }
@@ -146,13 +159,13 @@ class Builder {
         return false
       }
       if (e.javaType === 'Date') {
-        str += `    <if test="${e.name} != null and ${e.name} != ''">
+        str += `    <if test="${e.name} != null ${this._isStringType(e)}">
       <![CDATA[
         AND DATE_FORMAT(${e.fieldName}, '%Y-%m-%d %H:%i:%s') = DATE_FORMAT(#{${e.name}}, '%Y-%m-%d %H:%i:%s');
       ]]>
     </if>`
       } else {
-        str += `    <if test="${e.name} != null and ${e.name} != ''">
+        str += `    <if test="${e.name} != null ${this._isStringType(e)}">
       AND ${e.fieldName} = #{${e.name}}
     </if>`
       }

@@ -43,7 +43,6 @@ class ScriptParser {
       field.dbType = split[3].replace(/\(.+\)/, (value) => {
         return ''
       }).replace(',', '')
-      console.log(field.dbType)
       field.javaType = this.toJavaType(field.dbType)
 
       // 获取注释内容
