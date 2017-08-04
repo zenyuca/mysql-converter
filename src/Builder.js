@@ -8,7 +8,7 @@ class Builder {
     parser.parseAll()
     this.fieldList = parser.parseList
 
-    this.packageName = 'com.bingbee.light'
+    this.packageName = 'com.yunman.yun'
     this.beanPackage = `${this.packageName}.beans`
     this.mapperPackage = `${this.packageName}.mapper`
     this.servicePackage = `${this.packageName}.service`
@@ -392,7 +392,7 @@ public class ${field.beanName}ServiceImpl implements ${field.beanName}Service {
 
   buildController (field) {
     let urlprefix = 'yun'
-    let prefix = 'light'
+    let prefix = 'yun'
     let primaryKey = stringUtil.headToUpperCase(stringUtil.toCamelCase(field.primaryKey))
     let context = `package ${this.controllerPackage};
 
@@ -405,12 +405,12 @@ public class ${field.beanName}ServiceImpl implements ${field.beanName}Service {
   import org.springframework.web.servlet.ModelAndView;
 
   import com.alibaba.fastjson.JSON;
-  import com.bingbee.card.config.Config;
-  import com.bingbee.card.template.BaseController;
-  import com.bingbee.card.util.fastjsonx.JSONData;
+  import com.yunman.common.config.Config;
+  import com.yunman.common.interceptor.CheckToken;
+  import com.yunman.common.template.BaseController;
+  import com.yunman.common.util.fastjsonx.JSONData;
   import ${this.packageName}.beans.${field.beanName};
   import ${this.packageName}.service.${field.beanName}Service;
-  import com.electric.wen.interceptor.CheckToken;
 
   @Controller
   @RequestMapping(value = "admin/${urlprefix}/${field.varBeanName}")
@@ -526,7 +526,7 @@ ${this._javaBean(field.fieldList)}
     let context = ''
     field.fieldList.forEach((e, i) => {
       if (e.fieldName === field.primaryKey) {
-        context += `                        <td class="center"><label><input type="radio" class="ace" name="checks" value="\${${field.varBeanName}.${field.primaryKey}}" /> <span class="lbl"></span> </label></td>`
+        context += `                        <td class="center"><label><input type="radio" class="ace" name="checks" value="\${${field.varBeanName}.${stringUtil.toCamelCase(field.primaryKey)}}" /> <span class="lbl"></span> </label></td>`
       } else {
         if (e.javaType === 'Date') {
           context += `                        <td><fmt:formatDate value="\${${field.varBeanName}.${e.name} }" pattern="yyyy-MM-dd HH:mm:ss"/></td>`
