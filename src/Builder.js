@@ -8,7 +8,7 @@ class Builder {
     parser.parseAll()
     this.fieldList = parser.parseList
 
-    this.packageName = 'com.yunman.yun'
+    this.packageName = 'com.yunman.light'
     this.beanPackage = `${this.packageName}.beans`
     this.mapperPackage = `${this.packageName}.mapper`
     this.servicePackage = `${this.packageName}.service`
@@ -29,7 +29,7 @@ class Builder {
   _javaBean (list) {
     let str = ''
     list.forEach((e, i) => {
-      if (e.name === 'createTime') {
+      if (e.name === 'createTime' || e.name === 'createrId' || e.name === 'updateTime' || e.name === 'updaterId') {
         return false
       }
       e.comment = e.comment || ''
@@ -288,6 +288,8 @@ ${this._kv(field.fieldList)}
     DELETE FROM ${field.tableName} WHERE ${field.primaryKey} = #{${field.primaryKey}}
   </delete>
   
+  <!-- 手动增加区 -->
+  
 </mapper>`
     fs.writeFileSync('./build/mapper/' + field.beanName + 'Mapper.xml', mapper, 'utf-8')
   }
@@ -295,7 +297,7 @@ ${this._kv(field.fieldList)}
   buildMapperJava (field) {
     let context = `package ${this.mapperPackage};
 
-import com.bingbee.card.template.BaseMapper;
+import com.yunman.common.template.BaseMapper;
 import ${this.beanPackage}.${field.beanName};
 
 public interface ${field.beanName}Mapper extends BaseMapper<${field.beanName}, Integer> {
@@ -307,7 +309,7 @@ public interface ${field.beanName}Mapper extends BaseMapper<${field.beanName}, I
   buildService (field) {
     let context = `package ${this.servicePackage};
 
-import com.bingbee.card.template.BaseService;
+import com.yunman.common.template.BaseService;
 import ${this.beanPackage}.${field.beanName};
 
 public interface ${field.beanName}Service extends BaseService<${field.beanName}, Integer> {
@@ -479,8 +481,8 @@ public class ${field.beanName}ServiceImpl implements ${field.beanName}Service {
     let context = `package ${this.beanPackage};
 
 import java.io.Serializable;
-import com.bingbee.card.util.paging.Page;
-import com.electric.wen.beans.BaseBean;
+import com.yunman.common.beans.BaseBean;
+import com.yunman.common.util.paging.Page;
 public class ${field.beanName} extends BaseBean implements Serializable {
     private static final long serialVersionUID = 1L;
     private Page paper;
