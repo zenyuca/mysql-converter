@@ -8,7 +8,7 @@ class Builder {
     parser.parseAll()
     this.fieldList = parser.parseList
 
-    this.packageName = 'com.yunman.light'
+    this.packageName = 'club.zenyuca.eee'
     this.beanPackage = `${this.packageName}.beans`
     this.mapperPackage = `${this.packageName}.mapper`
     this.servicePackage = `${this.packageName}.service`
@@ -297,9 +297,10 @@ ${this._kv(field.fieldList)}
   buildMapperJava (field) {
     let context = `package ${this.mapperPackage};
 
-import com.yunman.common.template.BaseMapper;
+import club.zenyuca.core.template.BaseMapper;
 import ${this.beanPackage}.${field.beanName};
 
+@Component
 public interface ${field.beanName}Mapper extends BaseMapper<${field.beanName}, Integer> {
 
 }`
@@ -309,7 +310,7 @@ public interface ${field.beanName}Mapper extends BaseMapper<${field.beanName}, I
   buildService (field) {
     let context = `package ${this.servicePackage};
 
-import com.yunman.common.template.BaseService;
+import club.zenyuca.core.template.BaseService;
 import ${this.beanPackage}.${field.beanName};
 
 public interface ${field.beanName}Service extends BaseService<${field.beanName}, Integer> {
@@ -480,12 +481,11 @@ public class ${field.beanName}ServiceImpl implements ${field.beanName}Service {
   buildJavaBean (field) {
     let context = `package ${this.beanPackage};
 
+import club.zenyuca.core.template.BaseBean;
 import java.io.Serializable;
-import com.yunman.common.beans.BaseBean;
-import com.yunman.common.util.paging.Page;
+
 public class ${field.beanName} extends BaseBean implements Serializable {
     private static final long serialVersionUID = 1L;
-    private Page paper;
 ${this._javaBean(field.fieldList)}
 }`
     fs.writeFileSync('./build/beans/' + field.beanName + '.java', context, 'utf-8')
