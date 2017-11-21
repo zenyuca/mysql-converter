@@ -86,10 +86,14 @@ class ScriptParser {
       return 'String'
     } else if (type === 'int' || type === 'smallint') {
       return 'Integer'
+    } else if (type === 'bigint') {
+      return 'Long'
     } else if (type === 'datetime' || type === 'date') {
       return 'Date'
     } else if (type === 'double') {
       return 'Double'
+    } else if (type === 'tinyint') {
+      return 'Boolean'
     } else {
       return ''
     }

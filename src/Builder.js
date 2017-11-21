@@ -8,7 +8,7 @@ class Builder {
     parser.parseAll()
     this.fieldList = parser.parseList
 
-    this.packageName = 'com.yunman.light'
+    this.packageName = 'com.ichuangye.fwh'
     this.beanPackage = `${this.packageName}.beans`
     this.mapperPackage = `${this.packageName}.mapper`
     this.servicePackage = `${this.packageName}.service`
@@ -18,11 +18,11 @@ class Builder {
       this.buildJavaBean(e)
       this.buildMapper(e)
       this.buildMapperJava(e)
-      this.buildService(e)
-      this.buildServiceImpl(e)
-      this.buildController(e)
-      this.buildListPage(e)
-      this.buildAddEditPage(e)
+      // this.buildService(e)
+      // this.buildServiceImpl(e)
+      // this.buildController(e)
+      // this.buildListPage(e)
+      // this.buildAddEditPage(e)
     })
   }
 
@@ -189,107 +189,9 @@ ${this._resultMap(field.fieldList, field.primaryKey, field.varBeanName)}
 ${this._key(field.fieldList, field.primaryKey, field.varBeanName)}    
   </sql>
 
-  <sql id="insert_column_list" >
-${this._key(field.fieldList, field.primaryKey)}
-  </sql>
-
-  <sql id="value_column_list" >
-${this._value(field.fieldList, field.primaryKey)}
-  </sql>
-
   <sql id="where_condition">
 ${this._whereCondition(field.fieldList, true)}
   </sql>
-
-  <sql id="load_where_condition">
-${this._loadWhereCondition(field.fieldList, field.primaryKey, true)}
-  </sql>
-
-  <select id="findAll" resultMap="result_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
-    SELECT
-      <include refid="all_column_list">
-        <property name="alias" value=""/>
-      </include>
-    FROM ${field.tableName}
-    <where>
-      <include refid="where_condition">
-        <property name="alias" value=""/>
-      </include>
-    </where>
-    ORDER BY ${field.primaryKey} DESC
-  </select>
-
-  <select id="listPage" resultMap="result_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
-    SELECT
-      <include refid="all_column_list">
-        <property name="alias" value=""/>
-      </include>
-    FROM ${field.tableName}
-    <where>
-      <include refid="where_condition">
-        <property name="alias" value=""/>
-      </include>
-    </where>
-    ORDER BY ${field.primaryKey} DESC
-  </select>
-
-  <select id="load" resultMap="result_${field.varBeanName}" parameterType="${this.beanPackage}.${field.beanName}">
-    SELECT
-      <include refid="all_column_list">
-        <property name="alias" value=""/>
-      </include>
-    FROM ${field.tableName}
-    <where>
-      <include refid="load_where_condition">
-        <property name="alias" value=""/>
-      </include>
-    </where>
-  </select>
-  
-  <select id="loadByPK" resultMap="result_${field.varBeanName}" parameterType="java.lang.Integer">
-    SELECT
-      <include refid="all_column_list">
-        <property name="alias" value=""/>
-      </include>
-    FROM ${field.tableName}
-    WHERE ${field.primaryKey} = #{${field.primaryKey}}
-  </select>
-
-  <select id="findByPKs" resultMap="result_${field.varBeanName}" parameterType="java.lang.Integer">
-    SELECT
-      <include refid="all_column_list">
-        <property name="alias" value=""/>
-      </include> 
-    FROM ${field.tableName}
-    WHERE ${field.primaryKey} IN
-    <foreach collection="array" item="${field.primaryKey}" open="(" separator="," close=")">
-      #{${field.primaryKey}}
-    </foreach>
-  </select>
-  
-  <insert id="insert" parameterType="${this.beanPackage}.${field.beanName}" useGeneratedKeys="true" keyProperty="${field.primaryKey}">
-    INSERT INTO ${field.tableName} (
-      <include refid="insert_column_list">
-        <property name="alias" value=""/>
-      </include> 
-    )VALUES(
-      <include refid="value_column_list"></include>
-    )
-  </insert>
-
-  <update id="update" parameterType="${this.beanPackage}.${field.beanName}">
-    UPDATE ${field.tableName} SET 
-${this._kv(field.fieldList)} 
-      ${field.primaryKey} = #{${field.primaryKey}}
-    WHERE ${field.primaryKey} = #{${field.primaryKey}}
-  </update>
-
-  <delete id="delete" parameterType="Integer">
-    DELETE FROM ${field.tableName} WHERE ${field.primaryKey} = #{${field.primaryKey}}
-  </delete>
-  
-  <!-- 手动增加区 -->
-  
 </mapper>`
     fs.writeFileSync('./build/mapper/' + field.beanName + 'Mapper.xml', mapper, 'utf-8')
   }
@@ -297,10 +199,12 @@ ${this._kv(field.fieldList)}
   buildMapperJava (field) {
     let context = `package ${this.mapperPackage};
 
-import com.yunman.common.template.BaseMapper;
 import ${this.beanPackage}.${field.beanName};
+import com.ichuangye.fwh.core.util.MyMapper;
+import org.springframework.stereotype.Component;
 
-public interface ${field.beanName}Mapper extends BaseMapper<${field.beanName}, Integer> {
+@Component
+public interface ${field.beanName}Mapper extends MyMapper<${field.beanName}> {
 
 }`
     fs.writeFileSync('./build/mapper/' + field.beanName + 'Mapper.java', context, 'utf-8')
@@ -309,7 +213,7 @@ public interface ${field.beanName}Mapper extends BaseMapper<${field.beanName}, I
   buildService (field) {
     let context = `package ${this.servicePackage};
 
-import com.yunman.common.template.BaseService;
+import com.ichuangye.fwh.core.template.BaseService;
 import ${this.beanPackage}.${field.beanName};
 
 public interface ${field.beanName}Service extends BaseService<${field.beanName}, Integer> {
@@ -481,11 +385,8 @@ public class ${field.beanName}ServiceImpl implements ${field.beanName}Service {
     let context = `package ${this.beanPackage};
 
 import java.io.Serializable;
-import com.yunman.common.beans.BaseBean;
-import com.yunman.common.util.paging.Page;
-public class ${field.beanName} extends BaseBean implements Serializable {
+public class ${field.beanName} implements Serializable {
     private static final long serialVersionUID = 1L;
-    private Page paper;
 ${this._javaBean(field.fieldList)}
 }`
     fs.writeFileSync('./build/beans/' + field.beanName + '.java', context, 'utf-8')
